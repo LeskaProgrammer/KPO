@@ -1,0 +1,11 @@
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\bin\Debug\net9.0\Domain.deps.json
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\bin\Debug\net9.0\Domain.dll
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\bin\Debug\net9.0\Domain.pdb
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.AssemblyInfoInputs.cache
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.AssemblyInfo.cs
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.dll
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\refint\Domain.dll
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\Domain.pdb
+C:\Users\leshs\RiderProjects\Simonov_Alexey_KPO_HW_2\src\Domain\obj\Debug\net9.0\ref\Domain.dll
