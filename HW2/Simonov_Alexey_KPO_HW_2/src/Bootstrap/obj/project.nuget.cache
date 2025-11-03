@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "gTi73tnoFQQ=",
+  "dgSpecHash": "z0UHNQ1QSwI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\leshs\\RiderProjects\\Simonov_Alexey_KPO_HW_2\\src\\Bootstrap\\Bootstrap.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\leshs\\RiderProjects\\KPO-main\\KPO-main\\HW2\\Simonov_Alexey_KPO_HW_2\\src\\Bootstrap\\Bootstrap.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\leshs\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.0-rc.2.25502.107\\microsoft.extensions.dependencyinjection.10.0.0-rc.2.25502.107.nupkg.sha512",
+    "C:\\Users\\leshs\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0-rc.2.25502.107\\microsoft.extensions.dependencyinjection.abstractions.10.0.0-rc.2.25502.107.nupkg.sha512"
+  ],
   "logs": []
 }
