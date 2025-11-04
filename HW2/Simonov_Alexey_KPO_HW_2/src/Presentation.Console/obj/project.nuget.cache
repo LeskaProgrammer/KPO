@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "i3zOcv5OxeQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\leshs\\RiderProjects\\KPO-main\\KPO-main\\HW2\\Simonov_Alexey_KPO_HW_2\\src\\Presentation.Console\\Presentation.Console.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\leshs\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.0-rc.2.25502.107\\microsoft.extensions.dependencyinjection.10.0.0-rc.2.25502.107.nupkg.sha512",
+    "C:\\Users\\leshs\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0-rc.2.25502.107\\microsoft.extensions.dependencyinjection.abstractions.10.0.0-rc.2.25502.107.nupkg.sha512"
+  ],
+  "logs": []
+}
