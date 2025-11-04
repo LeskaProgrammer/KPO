@@ -1,63 +1,89 @@
 # КПО-ДЗ-2 — отчёт
 
-> sample.json - файл для импорта который содержит много счетов, категорий, операций для тестирования
+> `sample.json` — тестовый набор для импорта: много счетов, категорий, операций.
 
-## Паттерны GoF
-1) **Facade** — AccountFacade / CategoryFacade / OperationFacade / AnalyticsFacade  
-   Зачем использовал: один простой вход для сценариев вместо обращения к сервисам напрямую.
+## 1) Паттерны GoF
 
-2) **Command** — ImportData / ExportData / RecalculateBalance (+ прочие сценарии)  
-   Зачем использовал: каждый пользовательский сценарий как отдельная команда с Execute(), удобно запускать/логировать/декорировать. Без него сценарная логика расползлась бы по функциям в UI.
+1. **Facade** — `AccountFacade`, `CategoryFacade`, `OperationFacade`, `AnalyticsFacade`.  
+   *Зачем:* единая точка входа для сценариев, UI не знает о внутренних сервисах/репозиториях.
 
-3) **Decorator** — TimedCommand  
-   Зачем использовал: добавить замер времени к любой команде без изменения её кода. Без него пришлось бы вписывать Stopwatch и лог в каждую команду.
+2. **Command** — команды сценариев: `ImportData`, `ExportData`, `RecalculateBalance`, и др.  
+   *Зачем:* каждый сценарий = объект с `Execute()`. Удобно вызывать, логировать, декорировать.
 
-4) **Template Method** — BaseImporter -> JsonImporter/YamlImporter/CsvImporter  
-   Зачем использовал: общий скелет импорта, различия только в парсинге формата.
+3. **Decorator** — `TimedCommand` (обёртка над командой).  
+   *Зачем:* измерение времени без правок кода самих команд.
 
-5) **Visitor** — IExportVisitor -> JsonExportVisitor/YamlExportVisitor/CsvExportVisitor  
-   Зачем использовал: единый «визит» для выгрузки данных, разные форматы — разными визиторами.
+4. **Template Method** — `BaseImporter` → `JsonImporter` / `YamlImporter` / `CsvImporter`.  
+   *Зачем:* общий конвейер импорта, различается только парсер формата.
 
-6) **Proxy** — Cached*RepositoryProxy  
-   Зачем использовал: кэш поверх реального репозитория (сейчас InMemory), можно подменить хранилище не меняя клиентов.
+5. **Visitor** — `IExportVisitor` → `JsonExportVisitor` / `YamlExportVisitor` / `CsvExportVisitor`.  
+   *Зачем:* один обход домена, разные форматы выгрузки изолированы.
 
-7) **Factory** — BankAccountFactory / CategoryFactory / OperationFactory (используются в фасадах)  
-   Зачем использовал: централизованное создание доменных сущностей + валидация на входе, убирает дубли new/проверок.
+6. **Proxy** — `Cached*RepositoryProxy`.  
+   *Зачем:* кэш поверх реального репозитория (возможность прозрачно ускорить чтение).
 
-8) **Strategy** — IGroupingStrategy: ByCategory / ByDay / ByType  
-   Зачем использовал: Чтобы не писать switch по всему коду для взаимозаменяемых алгоритмов.
+7. **Factory** — `BankAccountFactory`, `CategoryFactory`, `OperationFactory`.  
+   *Зачем:* централизованное создание + валидация инвариантов при создании.
 
-## Архитектурные / DDD
-- Repository (+ InMemory реализации): абстракции для хранения BankAccount/Category/Operation.
-- Unit of Work: атомарные коммиты после сценариев.
-- DTO: перенос данных наружу из домена (маппинг в фасадах).
-- Value Objects: OperationType, CategoryType (и др. значимые типы).
-- Rules/Specification: NonNegativeAmountRule, OperationDateValidRule, CategoryTypeMatchesOperationTypeRule.
-- DI/IoC: Microsoft.Extensions.DependencyInjection; регистрация в Bootstrap.CompositionRoot.
-- Layered Architecture: Domain / Application / Infrastructure / Presentation (CLI).
+8. **Strategy** — `IGroupingStrategy`: `ByCategory` / `ByDay` / `ByType`.  
+   *Зачем:* взаимозаменяемые алгоритмы группировок в аналитике без `switch`.
 
-## Общая структура проекта
-- **Presentation (CLI):**  
-  * InteractiveUi — меню: счета / категории / операции / аналитика / импорт-экспорт / пересчёт.  
-  * Вызывает фасады из CompositionRoot. Для «Группировка (Strategy)» берёт IGroupingStrategy из DI и отдаёт её в AnalyticsFacade.
+_Доп.:_ используются небуквальные, но стандартные архитектурные практики — **Repository**, **Unit of Work**, **DTO**, **Value Object**.
 
-- **Application:**  
-  * Facade-классы инкапсулируют сценарии: Create/Rename/Delete/List/Record/Update/Delete/List.  
-  * Commands — сценарии как команды (импорт/экспорт/пересчёт), оборачиваются TimedCommand.  
-  * AnalyticsFacade — классические метрики (доход/расход/категории) + новый метод GetGrouped(..., IGroupingStrategy).  
-  * Порты (интерфейсы) репозиториев/UnitOfWork/IdGenerator/Clock.  
-  * DTO и маппинги (ToDto).
+---
 
-- **Domain:**  
-  * Entities: BankAccount / Category / Operation (бизнес-методы: ApplyIncome/ApplyExpense, Update*, Rename и т.д.).  
-  * Rules (валидация инвариантов).  
-  * Factories: создание сущностей с проверками (используются фасадами).  
-  * ValueObjects: типы, даты и т.п.
+## 2) SOLID и GRASP
 
-- **Infrastructure:**  
-  * Persistence.InMemory: InMemory*Repository + InMemoryUnitOfWork.  
-  * Proxies: Cached*RepositoryProxy (прокси над репозиториями).  
-  * ImportExport: BaseImporter (+ Json/Yaml/Csv) и ExportVisitors (Json/Yaml/Csv).
+**S (Single Responsibility).**  
+- Доменные сущности (`BankAccount`, `Category`, `Operation`) — только бизнес-состояние и бизнес-методы.  
+- Фабрики — только создание с проверками.  
+- Репозитории — только доступ к данным.  
+- Фасады — только координация сценариев.
 
-- **Bootstrap:**  
-  * CompositionRoot.Register(): регистрирует всё в DI, предоставляет шорткаты для фасадов/репозиториев.
+**O (Open/Closed).**  
+- Импорт/экспорт расширяется добавлением новых `Importer`/`Visitor` без правок существующего кода.  
+- Аналитика расширяется новыми `IGroupingStrategy`.
+
+**L (Liskov).**  
+- Все реализации репозиториев взаимозаменяемы по их интерфейсам.  
+- Любая `IGroupingStrategy` подставляется без поломок.
+
+**I (Interface Segregation).**  
+- Раздельные интерфейсы для `BankAccount`/`Category`/`Operation` репозиториев; нет «толстых» общих интерфейсов.
+
+**D (Dependency Inversion).**  
+- Высокоуровневые слои зависят от абстракций (репозитории, фабрики, часы, генератор id).  
+- Конкретика поставляется через DI в `CompositionRoot`.
+
+**GRASP.**  
+- **Controller:** фасады принимают запросы от UI.  
+- **Creator:** фабрики создают доменные объекты.  
+- **Low Coupling / High Cohesion:** обязанности узкие, связи через интерфейсы.  
+- **Pure Fabrication:** репозитории/DTO — технические классы вне доменной модели.  
+- **Polymorphism / Protected Variations:** стратегии/визиторы/шаблоны закрывают вариативность.
+
+---
+
+## 3) Архитектура и слои
+
+- **Presentation (CLI).** `InteractiveUi`/меню → вызывает фасады из DI.  
+- **Application.** Фасады, команды (`Command`), декораторы (`TimedCommand`), DTO, порты (интерфейсы).  
+- **Domain.** Сущности, фабрики, value-objects, бизнес-правила/валидации.  
+- **Infrastructure.** In-memory репозитории, прокси-кэш, импорт/экспорт (importers/visitors).  
+- **Bootstrap.** `CompositionRoot` — регистрация в `Microsoft.Extensions.DependencyInjection`.
+
+---
+
+## 4) Функциональность
+
+- **Счета/Категории/Операции:** создание/изменение/удаление. Баланс счёта обновляется при операциях.  
+- **Аналитика:** суммы доходов/расходов за период, группировки (по категории/дню/типу), разница.  
+- **Импорт/Экспорт:** CSV / JSON / YAML (оба направления).  
+- **Пересчёт балансов:** сервис пересчитывает баланс счёта из операций.  
+- **Статистика времени:** все команды можно запускать через `TimedCommand`.
+
+---
+
+## 5) Как запустить
+
+Program.cs точка входа
