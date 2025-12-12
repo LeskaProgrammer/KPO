@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  # === База данных ===
+  postgres:
+    image: postgres:15
+    restart: always
+    # Читаем переменные из .env файла
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      # ВАЖНО: Новое имя тома! Это сбросит старую базу и применит новый пароль.
+      - postgres_data_fixed:/var/lib/postgresql/data
+
+  # === Сервис хранения ===
+  file-storing-service:
+    build: ./File_Storing_Service
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    # Собираем строку подключения
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Общая папка для файлов
+      - shared_uploads:/app/uploaded_files
+
+  # === Сервис анализа ===
+  file-analysis-service:
+    build: ./File_Analysis_Service
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    depends_on:
+      - file-storing-service
+    volumes:
+      - shared_uploads:/app/uploaded_files
+
+  # === Шлюз ===
+  api-gateway:
+    build: ./API_Gateway
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - file-storing-service
+      - file-analysis-service
+
+volumes:
+  postgres_data_fixed:
+  shared_uploads:
