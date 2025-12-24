@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Gogon Shop</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; }
+        input, button { padding: 8px; margin: 5px 0; }
+        .status-NEW { color: blue; }
+        .status-FINISHED { color: green; font-weight: bold; }
+        .status-CANCELLED { color: red; font-weight: bold; }
+        .toast {
+            position: fixed; top: 20px; right: 20px; background: #333; color: #fff;
+            padding: 15px; border-radius: 5px; opacity: 0; transition: opacity 0.5s;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <h1>Магазин "Гоzон" 🐸</h1>
+
+    <div id="toast" class="toast"></div>
+
+    <div class="card">
+        <h3>👤 Вход</h3>
+        ID: <input type="number" id="userId" value="1">
+        <button onclick="login()">Подключиться к WS</button>
+        <span id="wsStatus" style="color:red">● Off</span>
+    </div>
+
+    <div class="card">
+        <h3>💳 Кошелек</h3>
+        <button onclick="createAccount()">Создать счет</button>
+        <input type="number" id="topupAmt" value="5000" placeholder="Сумма">
+        <button onclick="topup()">Пополнить</button>
+        <p>Баланс: <b id="balance">-</b></p>
+    </div>
+
+    <div class="card">
+        <h3>🛒 Покупка</h3>
+        <input type="text" id="desc" value="Свитер с оленями">
+        <input type="number" id="price" value="1200">
+        <button onclick="buy()">Купить</button>
+    </div>
+
+    <div class="card">
+        <h3>📦 Список заказов</h3>
+        <div id="orders"></div>
+    </div>
+
+    <script>
+        const API = "http://localhost/api";
+        const WS = "ws://localhost/ws";
+        let socket;
+
+        function login() {
+            const uid = document.getElementById('userId').value;
+            if(socket) socket.close();
+            socket = new WebSocket(`${WS}/${uid}`);
+
+            socket.onopen = () => {
+                document.getElementById('wsStatus').style.color = 'green';
+                document.getElementById('wsStatus').innerText = '● On';
+                loadData();
+            };
+
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                showToast(`Заказ #${data.order_id}: Статус ${data.status}`);
+                loadData();
+            };
+        }
+
+        async function loadData() {
+            const uid = document.getElementById('userId').value;
+            // Баланс
+            try {
+                let r = await fetch(`${API}/payments/accounts/${uid}`);
+                let d = await r.json();
+                document.getElementById('balance').innerText = d.balance;
+            } catch(e) { document.getElementById('balance').innerText = "Нет счета"; }
+
+            // Заказы
+            let r2 = await fetch(`${API}/orders/orders`);
+            let d2 = await r2.json();
+            let html = d2.map(o => `<div>#${o.id} ${o.description} (${o.amount}) <span class="status-${o.status}">${o.status}</span></div>`).join('');
+            document.getElementById('orders').innerHTML = html;
+        }
+
+        async function createAccount() {
+            await fetch(`${API}/payments/accounts`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user_id: parseInt(document.getElementById('userId').value)})});
+            loadData();
+        }
+
+        async function topup() {
+            await fetch(`${API}/payments/accounts/topup`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user_id: parseInt(document.getElementById('userId').value), amount: parseFloat(document.getElementById('topupAmt').value)})});
+            loadData();
+        }
+
+        async function buy() {
+            await fetch(`${API}/orders/orders`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+                user_id: parseInt(document.getElementById('userId').value),
+                description: document.getElementById('desc').value,
+                amount: parseFloat(document.getElementById('price').value)
+            })});
+            loadData();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

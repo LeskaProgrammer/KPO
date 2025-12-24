@@ -1,0 +1,7 @@
+name: ts
+on: push
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "UTC=$(date -u) SHA=$GITHUB_SHA"
